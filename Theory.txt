@@ -1,0 +1,746 @@
+react Routers
+
+BrowserRouter
+Routers
+Route
+Outlet
+Navigate
+link
+navLink
+
+Hooks we use are:
+useParams
+useSearchParams
+useNavigate
+
+install Json FAKE DATA  from jason data .product
+
+step : 1 Adding routing to index.jsx page
+const root = ReactDOM.createRoot(document.getElementById('root'));
+root.render(
+  <React.Fragment>
+    <BrowserRouter>
+    <App />
+    </BrowserRouter>
+   
+  </React.Fragment>
+
+step 2: adding routs to Home and Header page
+ <>
+    <Header/>
+    <Routes>
+      {/* now here we have sed the path for the router */}
+      <Route path="/" element={<Home/>}/>
+      <Route path="/products" element={<AllProducts/>}/>
+    </Routes>
+    
+    </>
+
+step3: Calling API
+ 
+      Now we go for api testing we will have a fake data of product that we will get from fakestoreapi.com in that there issection of url of products
+      copy that url for our api testing 
+
+      --> create a folder as service in src where create a file called product.service.js 
+
+      --> product.service .js
+        //Method for calling API
+        export const get = async (url, options) =>{
+          try {
+          let response = await fetch(url, options); --> we are featching that object in function get wheeh is url and options
+          let data = await response.json();
+          return data;
+          } catch (error) {
+            alert("server error")
+            console.log(error);
+            return false;
+          }
+        }
+        we are exportthe get method in app.js
+      --> in app.js we have 
+
+      import { Route, Routes } from "react-router-dom";
+      import Home from "./components/Home";
+      import Header from "./components/Header";
+      import AllProducts from "./components/AllProducts";
+      import { get } from "./service/product.service";
+      function App() {
+
+     -->Method for api testing and this method is connected with get
+        let getAData = async () =>{
+          let url =`http://fakestoreapi.com/products`;
+          let options = {method:"GET"};
+          let result = await get(url, options);
+          if(result){
+            console.log(result);
+          }
+          
+        };
+        return (
+          <>
+          <button onClick={getAData}> onn click of yhis button we will get the fackstorsapi dat that will be seened in console
+            Get Data
+          </button>
+          {/* <Header/> */}
+          <Routes>
+            {/* now here we have sed the path for the router */}
+            <Route path="/" element={<Home/>}/>
+            <Route path="/products" element={<AllProducts/>}/>
+          </Routes>
+          
+          </>
+        );
+      }
+
+      export default App;
+  
+step 4: To create a server we are using json server which gives us a fake REST api.
+
+        Now create a file in FlipKardClone name jsoFakeserver in that create a 1 file db.json
+        -->db.json
+         In that file copy the file json code that we have get from the fakestoreapi product file 
+         and pest the datain bd.json file.
+
+        install packet json file using npm init -y
+        and copy the server command form json Srver and peat in 
+        packet.json file at start option
+      
+      --> And then change the port number in start : "json-server --watch db.json --port 3004"
+      start the server in different window and start the another server
+
+step 5:  payload means a data
+         Now we are in Redux Part so we have to insatll redux-tool-kit for the project
+
+         reduct have specific task to perform 
+         First Service is called ---> data is dispatch to saveAction --->
+         action goes to productReducer ---> data is save in store ---> AT last we get an akknowledgement.
+
+         --> But we use Redux-Tool-Kit is an official recommendation.
+
+           Redux-tool kit is an pizza slice
+           where the slice is divided in n number of slice 
+           each slice represent an function such as 
+           --> login
+           -->signup
+           -->products
+           -->post
+           -->card etc
+
+           And each Slice has 3 parts in it 
+           name:
+           Initial State:
+           reducer: --> function that we pass on reducer is call reducer
+
+           In cmd add command for RTK:
+           npm install @reduxjs/toolkit
+           npm install react-redux
+
+           Now create a folder called redux in that create a 3 files:-
+           -->combine.reducer.js
+           import { combineReducers } from "@reduxjs/toolkit";
+           import ProductReducer from './product.slice';
+
+            const reducer = combineReducers({
+                product:ProductReducer,
+            });
+
+            export default reducer
+
+           -->product.slice.js
+           import { createSlice} from "@reduxjs/toolkit";
+           // we have created a slice which has 3 states
+           let ProductSlice = createSlice({
+              name:"ProductSlice",
+              initialState:{
+                  productList:[]
+              },
+              //its a method state for functiom
+              reducers:{
+                  saveProduct:()=>{
+                      console.log("save Product")
+                  },
+              },
+          });
+
+          export default ProductSlice.reducer;
+
+           -->store.js
+           import { configureStore } from "@reduxjs/toolkit";
+            import reducer from "./combine.reducer";
+
+            const store = configureStore({
+                reducer,
+            });
+
+            export default store;
+
+            --> in index.js or main.jsx
+             Add the store in that file 
+              import React from 'react';
+              import ReactDOM from 'react-dom/client';
+              import './css/style.css';
+              import App from './App';
+              //used for routing purpose
+              import {BrowserRouter} from "react-router-dom";
+              import { Provider } from 'react-redux';
+              import store from './redux/store';
+
+              const root = ReactDOM.createRoot(document.getElementById('root'));
+              root.render(
+                <React.Fragment>
+                  <Provider store={store} >
+                  <BrowserRouter>
+                  <App />
+                  </BrowserRouter>
+                  </Provider>
+                </React.Fragment>
+              );
+
+
+          {done success full installation of redux tool kit}
+
+step 6: we have to create a action to store the data from store-product.slics in RTX
+        we have to use useDispatch() method form react-redux
+
+        --> in App.js we have:
+            import { Route, Routes } from "react-router-dom";
+            import Home from "./components/Home";
+            import Header from "./components/Header";
+            import AllProducts from "./components/AllProducts";
+            import {get} from "./service/product.service.js"
+            import { saveProduct } from "./redux/product.slice.js";
+            import { useDispatch } from "react-redux";
+
+            function App() {
+            let dispatch = useDispatch();
+              //Method for calling API
+              
+
+              let getAData = async () =>{
+                let url = `http://localhost:3004/product`;
+                let result = await get(url);
+                if(result){
+                  dispatch(saveProduct(result));
+                  --> we have called dispatch method to dispatch the data.
+                  -->So if result is their then dispatch the saveProduct(result);
+                }
+                
+              };
+        --> now in product.slice.js we have some changes.
+
+           import { createSlice} from "@reduxjs/toolkit";
+
+          // we have created a slice which has 3 states
+          let ProductSlice = createSlice({
+              name:"ProductSlice",
+              initialState:{
+                  productList:[]
+              },
+              //its a method state for functiom
+              reducers:{
+                  saveProduct:(state, action)=>{ 
+                  --> So for saveProduct we have state and state define state and action data action  
+                  state.productList = action.payload ;
+                  -->state.productList{productList is initialState = action.playload action on data to save to RTX}
+                  },
+              },
+          });
+
+          export default ProductSlice.reducer;
+          export const { saveProduct } = ProductSlice.actions;
+
+          {At end we can say that initial sate have product list now}
+
+step 7:  --> same as product we have created category and changed the url to category url and run the application.
+
+         -->to collect data from redux we use hook called useSelector(()=>{});
+            In home.js 
+            we eant to call use useSelector to get the data the category data
+           
+         -->home.js
+           function Home() {
+            let {categories} = useSelector((state)=>{
+                return state.product;
+              });
+              console.log(categories)
+           }
+           Now form productslice we got the function ProductSlice intialstate name categories.
+
+           now we have created a getAData function son we want that data in home.js for that selst the function and peast in home.js
+         
+
+
+step 8: --> React-Life-Cycle(RLC)
+            A component has diffenent LifeCycle
+             -->initial State (run once)
+             -->Mounting      (run once)
+             -->Update        (run many times)
+             -->Unmount       (run once)
+             for the compont we use RLC and its uses a useEffect(when a side effect happned the useEffect runs)
+
+step 9: Now we want that our categories should be display with their names:
+       so for that some changes in home.js code
+           return (
+        <>
+             <div className="container-fluid categories" style={{ marginTop : "60px" }}>
+        <div className="container">
+            <div className="d-flex justify-content-between catemobile">
+                   {
+                    categories.map((category)=>{
+                        return(
+                            <div className="items text-center" key={category.c_id}>
+                            <div className="catimg">
+                                <img width="64px" src="img/category/offers.webp" alt=""/>
+                            </div>
+                            <div className="catname">{category.category}</div>
+                        </div>
+                        );
+                    })} 
+
+            </div>
+        </div>
+    </div>
+    {now see the output}
+
+step 10: Now we want to click on menCloathing categories and we want to redirect on mens cloathing page 
+         for that we want useNavigate() hook
+         --> home.js we have some cahnges 
+          useEffect(()=>{
+              if(categories.length === 0 ) getAData(); //this is for good performance
+          })
+          let navigate = useNavigate();
+            return (
+                <>
+                    <div className="container-fluid categories" style={{ marginTop : "60px" }}>
+                <div className="container">
+                    <div className="d-flex justify-content-between catemobile">
+                          {
+                            categories.map((category)=>{
+                                return(
+                                    <div onClick={()=>navigate(`/products?c_id=${category.c_id}&cat_name=${category.catagory}`)} 
+                                    // it gives us the url of prorper click function
+                                    className="items text-center" key={category.c_id}>
+                                    <div className="catimg">
+                                        <img width="64px" src="img/category/offers.webp" alt=""/>
+                                    </div>
+                                    <div className="catname text-capitalize">{category.category}</div>
+                                </div>
+                                );
+                            })}       
+      
+step 11 : we have to add now data of our product json file fo rthat in 
+        --> allproduct.js
+        same method as catorgy we have called 
+        calling Api but in this we are using useSearchParams for the product id
+        function AllProducts() {
+          let [searchParams] = useSearchParams();
+          let dispatch =useDispatch();
+          let {productList} = useSelector((state)=>{
+              return state.product;
+            });
+          let getProductList = async() =>{
+              let id = searchParams.get("c_id")
+              let url =('http://localhost:3004/product?c_id='+id)
+              let result = await get(url);
+              if(result){
+                  dispatch(saveProduct(result))
+              }
+          };
+          //onload
+          useEffect(()=>{
+              getProductList();
+
+              return () =>{
+                  dispatch(saveProduct([]));
+              }
+          })
+
+        }
+          Now in html code some changes now we are adding product acccording to category
+ return (
+    <>
+      <div className="container-fluid container-md " style={{ marginTop: 60 }}>
+        <div className="py-3">
+          <h5>products -{categories}</h5>
+        </div>
+        <div className="row mb-3">
+          {/* call product List to print  */}
+          {productList.map((product) => {
+            return (
+              <div
+                className=" text-dark border-bottom border-2  p-4 "
+                key={product.id}
+                style={{ aspectRatio: "4/1", textDecoration: "none" }}
+              >
+                <div className=" row size">
+                  <div className=" col-4 d-flex align-items-center justify-content-center">
+                    <img
+                      src={product.image}
+                      className="card-img-top-img  w-75"
+                      alt="..."
+                      style={{ aspectRatio: "4/4", objectFit: "contain" }}
+                    />
+                  </div>
+                  <div className="col-4 card-body ">
+         *********************************** IMPORTENT  ***********************    
+         -->added product   abd its catogries such as title,rating, product-name,images etc like that.
+                    {/* navigate to single product */}
+                    <div onClick={() => naviage(`/products/${product.id}`)}>
+                      <h4 className="product-style">{product.title}</h4>
+                      <div className=" d-flex ">
+                        <span>
+                          <button className="badge btn text-bg-success ">
+                            {product.rating.rate}
+                            <i className="bi bi-star-fill"></i>
+                          </button>
+                        </span>
+                      </div>
+                      <div className="overflow">
+                        <p className="product-name ">{product.description}</p>
+                      </div>
+                      <div>
+                        <span className="pe-2 h2">₹ {product.price} /-</span>
+                        <span className="text-secondary pe-2">
+                          <del>{product.rating.count}</del>
+                        </span>
+                        <span className="text-success">80% off</span>
+                      </div>
+                    </div>
+                    {/* navigate to cart and to data in carts */}
+                    <button
+                      className="btn btn-danger btn-sm m-2"
+                      onClick={() =>
+                        dispatch(addtoCart({ ...product, Qty: 1 }))
+                      }
+                    >
+                      Add To Cart
+                    </button>
+                  </div>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+    </>
+  );
+};
+
+export default AllProduct;
+
+step 12:  -->card.js
+          /* eslint-disable jsx-a11y/anchor-is-valid */
+import { useDispatch, useSelector } from "react-redux";
+import { removeCart, manageQuantity } from "../redux/Product.slice";
+import { useEffect, useState } from "react";
+
+const Cart = () => {
+  // ! set initial state of total count of products
+  const [totalCounts, setTotalCount] = useState({
+    totalCount: 0,
+    totalPrice: 0,
+  });
+  const { cart } = useSelector((state) => state.products);
+  const dispatch = useDispatch();
+
+  useEffect(() => {
+    // ! get total count and set totalPrice
+    const prices = cart.reduce(
+      (prevPrice, currntPrice) => {
+        let pTotal = Math.round(currntPrice.Qty * currntPrice.price);
+
+        return {
+          totalCount: prevPrice.totalCount + currntPrice.Qty,
+          totalPrice: prevPrice.totalPrice + pTotal,
+        };
+      },
+      { totalCount: 0, totalPrice: 0 }
+    );
+    setTotalCount(prices);
+  }, [cart]);
+  console.log(totalCounts);
+  return (
+    <>
+      <div>
+        <div className="container" style={{ marginTop: 60 }}>
+          <div className="py-3">
+            <h5>Your Cart</h5>
+          </div>
+          <div className="row">
+            <div className="col-md-8">
+              <div className="">
+                <div className="card mb-3">
+                  <div className="card-body">
+                    {cart.length === 0 ? (
+                      <div className="h4 text-secondary">
+                        &#x261B; Empty Cart
+                      </div>
+                    ) : (
+                      <>
+                      {/* index is used to not to pring hr at last  */}
+                        {cart.map((_cart, index) => {
+                          return (
+                            <div key={index}>
+                              <div className="d-flex">
+                                <div className="px-4">
+                                  <img
+                                    src={_cart.image}
+                                    className="cartpImg"
+                                    alt=".."
+                                  />
+                                </div>
+                                <div>
+                                  <p className="card-title">{_cart.title}</p>
+                                  <div className="text-secondary">
+                                    <p className="mb-0">
+                                      category : {_cart.category}
+                                    </p>
+                                    <p>Quantity : {_cart.Qty}</p>
+                                  </div>
+                                  <p className="card-text">
+                                    ₹ {_cart.price} /-
+                                  </p>
+                                  <div className="">
+                                    <button
+                                      className="btn btn-success btn-sm me-2"
+                                      onClick={() =>
+                                        dispatch(
+                                          manageQuantity({ index, sign: "+" })
+                                        )
+                                      }
+                                    >
+                                      +
+                                    </button>
+
+                                    <button
+                                      className="btn btn-warning btn-sm mr-1"
+                                      onClick={() =>
+                                        dispatch(
+                                          manageQuantity({ index, sign: "-" })
+                                        )
+                                      }
+                                    >
+                                      -
+                                    </button>
+
+                                    <button
+                                      onClick={() => {
+                                        dispatch(removeCart(index));
+                                      }}
+                                      className="btn mx-2 btn-danger btn-sm"
+                                    >
+                                      Remove
+                                    </button>
+                                  </div>
+                                </div>
+                              </div>
+                              {/* check if cart lenth for add border property */}
+                              {cart.length - 1 === index ? null : <hr />}
+                            </div>
+                          );
+                        })}
+                      </>
+                    )}
+                  </div>
+                </div>
+              </div>
+              {cart.length === 0 ? null : (
+                <div className="card mb-3">
+                  <div className="card-body d-flex  justify-content-end">
+                    <a
+                      href="#"
+                      className="btn btn-danger btn btn-danger px-5 py-2 brnone"
+                      style={{ backgroundColor: "#fb641b" }}
+                    >
+                      PLACE ORDER
+                    </a>
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* Add more product cards here */}
+          </div>
+          {cart.length === 0 ? null : (
+            <div className="col-md-4 ">
+              <div className="card position-sticky " style={{ top: "70px" }}>
+                <div className="card-body">
+                  <h6 className="card-title border-bottom pb-3">
+                    PRICE DETAILS
+                  </h6>
+                  <table className="table">
+                    <tbody>
+                      <tr className="border-white">
+                        <td>Price ({totalCounts.totalCount}) </td>
+                        <td>₹ {totalCounts.totalPrice}</td>
+                      </tr>
+                      <tr className="border-white">
+                        <td>Discount </td>
+                        <td>
+                          <span className="text-success">- ₹3000</span>
+                        </td>
+                      </tr>
+                      <tr>
+                        <td>Delivery Charges </td>
+                        <td>
+                          <span className="text-success">FREE</span>
+                        </td>
+                      </tr>
+                      <tr className="border-white ">
+                        <td>
+                          <span className="font-weight-bold">Total Amount</span>
+                        </td>
+                        <td>
+                          <span className="font-weight-bold">
+                            {totalCounts.totalPrice}
+                          </span>
+                        </td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+          )}
+        </div>
+
+        {/* login database  */}
+        <div className="d-none">
+          <div className="card mb-3">
+            <div className="card-body">
+              <div className="mb-2">
+                <div>1. Login or SigUp</div>
+                <div className="w-50">
+                  <input
+                    type="text"
+                    className="form-control mt-3 mb-3"
+                    placeholder="Enter Email/Mobile Number"
+                  />
+                  {/* <input type="text" class="form-control mt-3 mb-3" placeholder="Enter OTP"> */}
+                  <a
+                    href="#"
+                    className="btn btn-danger btn btn-danger px-5 py-2 brnone"
+                    style={{ backgroundColor: "#fb641b" }}
+                  >
+                    CONTINUE
+                  </a>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div className="card mb-3">
+            <div className="card-body">
+              <div className="mb-2">
+                <div>2. DELIVERY ADDRESS</div>
+                <div className="bg-light py-2 px-3 mt-3">Add new Address</div>
+              </div>
+            </div>
+          </div>
+          <div className="card mb-3">
+            <div className="card-body">
+              <div className="mb-2">
+                <div>3. ORDER SUMMARY</div>
+              </div>
+            </div>
+          </div>
+          <div className="card mb-3">
+            <div className="card-body">
+              <div className="mb-2">
+                <div>3. PAYMENT OPTION</div>
+              </div>
+            </div>
+          </div>
+          <div className="card mb-3">
+            <div className="card-body d-flex  justify-content-end">
+              <a
+                href="#"
+                className="btn btn-danger btn btn-danger px-5 py-2 brnone"
+                style={{ backgroundColor: "#fb641b" }}
+              >
+                PLACE ORDER
+              </a>
+            </div>
+          </div>
+        </div>
+      </div>
+    </>
+  );
+};
+
+export default Cart;
+
+-->AllProduct.js
+   {/* navigate to cart and to data in carts */}
+                    <button
+                      className="btn btn-danger btn-sm m-2"
+                      onClick={() =>
+                        dispatch(addtoCart({ ...product, Qty: 1 }))
+                      }
+                    >
+                      Add To Cart
+                    </button>
+                  </div>
+                </div>
+              </div>
+
+--> In Product.Slice.js
+ // ! call the reducer function
+  reducers: {
+    // save product form productlisr
+    saveProducts: (state, action) => {
+      state.productList = action.payload;
+    },
+    // get product catagorie wise
+    saveCatagories: (state, action) => {
+      state.catagoires = action.payload;
+    },
+    // put data form cart
+    addtoCart: (state, action) => {
+      let index = state.cart.findIndex((cart) => cart.id === action.payload.id);
+      if (index !== -1) {
+        state.cart[index].Qty += 1;
+      } else {
+        //adding new record to card
+        state.cart.push(action.payload);
+      }
+    },
+    // remove single product in carts
+    removeCart: (state, action) => {
+      state.cart.splice(action.payload, 1);
+    },
+
+    // check product quntity and add more quantity
+    manageQuantity: (state, action) => {
+      const { sign, index } = action.payload;
+      if (sign === "+") {
+        state.cart[index].Qty += 1;
+      } else {
+        if (state.cart[index].Qty === 1) {
+          state.cart.splice(action.payload, 1);
+        } else {
+          state.cart[index].Qty -= 1;
+        }
+      }
+    },
+  },
+});
+
+// export reducer function
+export const {
+  saveProducts,
+  saveCatagories,
+  addtoCart,
+  removeCart,
+  manageQuantity,
+} = ProductSlice.actions;
+export default ProductSlice.reducer;
+
+--> at last card ie added 
+
+step 13: Now we are starting with React Saga 
+         step how it works:- {1} 
+
+
+          
+              
+
